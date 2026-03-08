@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Utility &amp; Telecom Analysis — Juan Perez</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f1419; color: #e0e0e0; }
+
+  header {
+    background: linear-gradient(135deg, #1a1f2e 0%, #0d3b66 100%);
+    color: #fff; padding: 28px 40px; border-bottom: 2px solid #0d7377;
+  }
+  header h1 { font-size: 1.7rem; font-weight: 700; }
+  header p  { font-size: 0.95rem; opacity: 0.85; margin-top: 6px; }
+
+  .container { max-width: 1400px; margin: 0 auto; padding: 28px 24px; }
+
+  /* KPI Cards */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 18px; margin-bottom: 28px; }
+  .kpi { background: #1a1f2e; border-radius: 12px; padding: 22px 24px;
+         box-shadow: 0 4px 15px rgba(0,0,0,0.4); text-align: center; border-left: 4px solid; }
+  .kpi .label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+                letter-spacing: 0.06em; color: #a0a0a0; margin-bottom: 8px; }
+  .kpi .value { font-size: 1.9rem; font-weight: 800; line-height: 1; }
+  .kpi .sub   { font-size: 0.78rem; color: #888; margin-top: 6px; }
+  .kpi.blue   { border-left-color: #00d4ff; } .kpi.blue   .value { color: #00d4ff; }
+  .kpi.orange { border-left-color: #ff9500; } .kpi.orange .value { color: #ff9500; }
+  .kpi.cyan   { border-left-color: #4ecdc4; } .kpi.cyan   .value { color: #4ecdc4; }
+  .kpi.purple { border-left-color: #a855f7; } .kpi.purple .value { color: #a855f7; }
+  .kpi.pink   { border-left-color: #f472b6; } .kpi.pink   .value { color: #f472b6; }
+  .kpi.gold   { border-left-color: #ffd700; } .kpi.gold   .value { color: #ffd700; }
+  .kpi.gray   { border-left-color: #888;    } .kpi.gray   .value { color: #aaa; }
+
+  /* Section titles */
+  .section-title {
+    font-size: 1rem; font-weight: 700; color: #00d4ff;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    border-left: 4px solid #0d7377; padding-left: 10px;
+    margin-bottom: 16px; margin-top: 28px;
+  }
+
+  /* Cards */
+  .card { background: #1a1f2e; border-radius: 12px; padding: 24px;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.4); border: 1px solid #2a3f4a; margin-bottom: 20px; }
+  .card h3 { font-size: 0.95rem; font-weight: 700; color: #00d4ff; margin-bottom: 16px; }
+
+  /* Charts */
+  .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 20px; }
+  .chart-box { background: #1a1f2e; border-radius: 12px; padding: 20px;
+               box-shadow: 0 4px 15px rgba(0,0,0,0.4); border: 1px solid #2a3f4a; }
+  .chart-box h3 { font-size: 0.9rem; font-weight: 700; color: #00d4ff; margin-bottom: 14px; }
+  .chart-container { position: relative; height: 300px; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  th { background: #0d3b66; color: #fff; padding: 10px 12px; text-align: center;
+       font-weight: 600; font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  td { padding: 9px 12px; border-bottom: 1px solid #1e2d3a; text-align: center; }
+  tr:hover td { background: rgba(13,115,119,0.1); }
+  td.elec  { color: #00d4ff; font-weight: 600; }
+  td.gas   { color: #ff9500; font-weight: 600; }
+  td.water { color: #4ecdc4; font-weight: 600; }
+  td.fios  { color: #a855f7; font-weight: 600; }
+  td.mobile{ color: #f472b6; font-weight: 600; }
+  td.total { color: #ffd700; font-weight: 700; }
+  td.chg   { font-size: 0.82rem; }
+  td.chg.up{ color: #ff7070; }
+  td.chg.dn{ color: #4ecdc4; }
+  tfoot td { background: #0a1520; font-weight: 700; border-top: 2px solid #0d7377; }
+
+  /* Provider badges */
+  .pbadge { display: inline-block; padding: 3px 10px; border-radius: 20px;
+            font-size: 0.76rem; font-weight: 600; }
+  .pb-e { background: rgba(0,212,255,0.18); color: #00d4ff; }
+  .pb-g { background: rgba(255,149,0,0.18); color: #ff9500; }
+  .pb-w { background: rgba(78,205,196,0.18); color: #4ecdc4; }
+  .pb-f { background: rgba(168,85,247,0.18); color: #a855f7; }
+  .pb-m { background: rgba(244,114,182,0.18); color: #f472b6; }
+
+  /* Savings banner */
+  .savings-banner { background: linear-gradient(90deg, rgba(0,100,0,0.25), rgba(0,60,0,0.15));
+    border: 1px solid #2d6a2d; border-radius: 10px; padding: 16px 20px;
+    display: flex; align-items: flex-start; gap: 14px; margin-bottom: 20px; }
+  .savings-banner .icon { font-size: 1.8rem; flex-shrink: 0; }
+  .savings-banner .text h4 { color: #6fcf6f; font-size: 0.95rem; margin-bottom: 5px; }
+  .savings-banner .text p  { font-size: 0.85rem; color: #b0d0b0; line-height: 1.5; }
+
+  /* Note banner */
+  .note-banner { background: rgba(168,85,247,0.1); border: 1px solid rgba(168,85,247,0.3);
+    border-radius: 10px; padding: 14px 18px; margin-bottom: 20px; font-size: 0.85rem;
+    color: #c4a8e8; line-height: 1.6; }
+
+  /* Insight box */
+  .insight { background: #1a1f2e; border-radius: 12px; padding: 24px;
+             box-shadow: 0 4px 15px rgba(0,0,0,0.4); border: 1px solid #2a3f4a;
+             margin-bottom: 20px; }
+  .insight h3 { font-size: 0.95rem; font-weight: 700; color: #00d4ff; margin-bottom: 14px; }
+  .insight p, .insight li { font-size: 0.88rem; color: #ccc; line-height: 1.7; margin-bottom: 10px; }
+  .insight ul { padding-left: 20px; }
+
+  /* Footnote */
+  .footnote { font-size: 0.78rem; color: #666; border-top: 1px solid #2a3f4a;
+              padding-top: 16px; margin-top: 24px; line-height: 1.7; }
+  .footnote strong { color: #888; }
+
+  @media (max-width: 900px) {
+    .charts-grid { grid-template-columns: 1fr; }
+    header { padding: 20px; }
+    th, td { padding: 7px 8px; font-size: 0.8rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>&#128202; Utility &amp; Telecom Analysis — Juan Perez</h1>
+  <p>Sep 2025 &ndash; Feb 2026 &nbsp;&#8226;&nbsp; 6-Month Summary &nbsp;&#8226;&nbsp; PSE&amp;G &bull; Veolia Water NJ &bull; Verizon Fios &bull; Verizon Wireless &nbsp;&#8226;&nbsp; Generated March 2026</p>
+</header>
+
+<div class="container">
+
+  <!-- KPI ROW 1: Totals -->
+  <div class="kpi-grid">
+    <div class="kpi blue">
+      <div class="label">&#9889; Electric</div>
+      <div class="value">$2,101</div>
+      <div class="sub">PSE&amp;G &middot; 6-mo est.</div>
+    </div>
+    <div class="kpi orange">
+      <div class="label">&#128293; Gas</div>
+      <div class="value">$716</div>
+      <div class="sub">PSE&amp;G &middot; 6-mo est.</div>
+    </div>
+    <div class="kpi cyan">
+      <div class="label">&#128167; Water</div>
+      <div class="value">$392</div>
+      <div class="sub">Veolia Water NJ</div>
+    </div>
+    <div class="kpi pink">
+      <div class="label">&#128241; VZW Mobile</div>
+      <div class="value">$1,038</div>
+      <div class="sub">Acct ...7065-00001</div>
+    </div>
+    <div class="kpi purple">
+      <div class="label">&#127760; Verizon Fios</div>
+      <div class="value">$334</div>
+      <div class="sub">Acct ...867-0001</div>
+    </div>
+    <div class="kpi gold">
+      <div class="label">&#128202; Grand Total</div>
+      <div class="value">$4,581</div>
+      <div class="sub">All services &middot; 6 months</div>
+    </div>
+  </div>
+
+  <!-- KPI ROW 2: Averages -->
+  <div class="kpi-grid">
+    <div class="kpi gray">
+      <div class="label">Avg Monthly Utilities</div>
+      <div class="value">$535</div>
+      <div class="sub">Electric + Gas + Water</div>
+    </div>
+    <div class="kpi gray">
+      <div class="label">Avg Monthly VZW Mobile</div>
+      <div class="value" style="color:#f472b6;">$173</div>
+      <div class="sub">~$237 Sep&ndash;Nov &rarr; $140 Jan&ndash;Feb</div>
+    </div>
+    <div class="kpi gray">
+      <div class="label">Avg Monthly Fios</div>
+      <div class="value" style="color:#a855f7;">$55.66</div>
+      <div class="sub">$67.99 Sep&ndash;Nov, $42.99 Dec&ndash;Feb</div>
+    </div>
+    <div class="kpi gray">
+      <div class="label">Avg Monthly All-In</div>
+      <div class="value" style="color:#ffd700;">$763</div>
+      <div class="sub">Utilities + Both Verizon</div>
+    </div>
+  </div>
+
+  <!-- ARBOR SAVINGS BANNER -->
+  <div class="savings-banner">
+    <div class="icon">&#127807;</div>
+    <div class="text">
+      <h4>Arbor Energy Savings Active (since Nov 5, 2025)</h4>
+      <p>You're saving ~$0.0035/kWh vs PSE&amp;G default supply. At ~1,860 kWh/month that's ~$6.50/month saved. Keep your enrollment active &mdash; PSE&amp;G rates are trending higher.</p>
+    </div>
+  </div>
+
+  <!-- VERIZON NOTE -->
+  <div class="note-banner">
+    <p>&#128241; <strong>Verizon Complete Picture (Confirmed):</strong> Two separate accounts now included. <strong>Fios/Home (acct ...867-0001)</strong> bills go to Juan's Gmail from Verizon Fios: Sep&ndash;Nov $67.99/mo, Dec&ndash;Feb $42.99/mo (total $333.94). <strong>Wireless/Mobile (acct ...7065-00001)</strong> bills go to Melissa's Gmail: Sep&ndash;Nov ~$236/mo, Dec $47.16 (large drop &mdash; likely a plan change or credit), Jan&ndash;Feb $140.06/mo (total $1,037.55). Combined 6-month telecom spend: <strong>$1,371.49</strong>.</p>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="section-title">&#128202; 6-Month Spending Trends</div>
+  <div class="charts-grid">
+    <div class="chart-box">
+      <h3>Monthly Spend by Category</h3>
+      <div class="chart-container"><canvas id="stackedBar"></canvas></div>
+    </div>
+    <div class="chart-box">
+      <h3>6-Month Cost Breakdown</h3>
+      <div class="chart-container"><canvas id="donut"></canvas></div>
+    </div>
+  </div>
+
+  <!-- MONTHLY BREAKDOWN TABLE -->
+  <div class="section-title">&#128203; Monthly Breakdown</div>
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Month</th>
+          <th>&#9889; Electric</th>
+          <th>&#128293; Gas</th>
+          <th>&#128167; Water</th>
+          <th>&#128241; VZW Mobile</th>
+          <th>&#127760; Fios</th>
+          <th>&#128202; Total</th>
+          <th>MoM Change</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Sep 2025</td>
+          <td class="elec">$90.94</td>
+          <td class="gas">$33.09</td>
+          <td class="water">$60.41</td>
+          <td class="mobile">$236.84</td>
+          <td class="fios">$67.99</td>
+          <td class="total">$489.27</td>
+          <td class="chg">&mdash;</td>
+        </tr>
+        <tr>
+          <td>Oct 2025</td>
+          <td class="elec">$79.20</td>
+          <td class="gas">$55.62</td>
+          <td class="water">$63.64</td>
+          <td class="mobile">$236.47</td>
+          <td class="fios">$67.99</td>
+          <td class="total">$502.92</td>
+          <td class="chg up">+$13.65 &#9650;</td>
+        </tr>
+        <tr>
+          <td>Nov 2025</td>
+          <td class="elec">$372.87</td>
+          <td class="gas">$131.48</td>
+          <td class="water">$72.43</td>
+          <td class="mobile">$236.96</td>
+          <td class="fios">$67.99</td>
+          <td class="total">$881.73</td>
+          <td class="chg up">+$378.81 &#9650;</td>
+        </tr>
+        <tr>
+          <td>Dec 2025</td>
+          <td class="elec">$442.30</td>
+          <td class="gas">$166.42</td>
+          <td class="water">$65.10</td>
+          <td class="mobile" style="color:#ff9500;">$47.16 &#9733;</td>
+          <td class="fios">$42.99</td>
+          <td class="total">$763.97</td>
+          <td class="chg dn">&minus;$117.76 &#9660;</td>
+        </tr>
+        <tr>
+          <td>Jan 2026</td>
+          <td class="elec">$570.85</td>
+          <td class="gas">$159.95</td>
+          <td class="water">$70.71</td>
+          <td class="mobile">$140.06</td>
+          <td class="fios">$42.99</td>
+          <td class="total">$984.56</td>
+          <td class="chg up">+$220.59 &#9650;</td>
+        </tr>
+        <tr>
+          <td>Feb 2026 <small style="color:#666;font-weight:400;">(est.)</small></td>
+          <td class="elec">$545.00</td>
+          <td class="gas">$169.72</td>
+          <td class="water">$59.50</td>
+          <td class="mobile">$140.06</td>
+          <td class="fios">$42.99</td>
+          <td class="total">$957.27</td>
+          <td class="chg dn">&minus;$27.29 &#9660;</td>
+        </tr>
+      </tbody>
+      <tfoot>
+        <tr>
+          <td style="color:#00d4ff;">6-MO TOTAL</td>
+          <td class="elec">$2,101.16</td>
+          <td class="gas">$716.28</td>
+          <td class="water">$391.79</td>
+          <td class="mobile">$1,037.55</td>
+          <td class="fios">$333.94</td>
+          <td class="total">$4,580.72</td>
+          <td></td>
+        </tr>
+        <tr>
+          <td style="color:#00d4ff;">MONTHLY AVG</td>
+          <td class="elec">$350.19</td>
+          <td class="gas">$119.38</td>
+          <td class="water">$65.30</td>
+          <td class="mobile">$172.93</td>
+          <td class="fios">$55.66</td>
+          <td class="total">$763.45</td>
+          <td></td>
+        </tr>
+      </tfoot>
+    </table>
+    <p style="font-size:0.78rem;color:#666;margin-top:10px;">&#9733; Dec 2025 mobile bill dropped sharply ($236.96 &rarr; $47.16) &mdash; likely a plan change, line removal, or one-time credit on the wireless account.</p>
+  </div>
+
+  <!-- PROVIDERS TABLE -->
+  <div class="section-title">&#127970; Providers &amp; Accounts</div>
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th style="text-align:left;">Provider</th>
+          <th>Service</th>
+          <th>Account</th>
+          <th>6-Mo Total</th>
+          <th>Avg/Month</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>PSE&amp;G</td>
+          <td style="text-align:center;"><span class="pbadge pb-e">&#9889; Electric</span></td>
+          <td style="text-align:center;color:#888;">XXXX0906</td>
+          <td class="elec">~$2,101</td>
+          <td class="elec">~$350</td>
+          <td style="color:#888;text-align:left;">Via Arbor supply since Nov 5, 2025</td>
+        </tr>
+        <tr>
+          <td>PSE&amp;G</td>
+          <td style="text-align:center;"><span class="pbadge pb-g">&#128293; Gas</span></td>
+          <td style="text-align:center;color:#888;">XXXX0906</td>
+          <td class="gas">~$716</td>
+          <td class="gas">~$119</td>
+          <td style="color:#888;text-align:left;">Combined w/ electric on same bill</td>
+        </tr>
+        <tr>
+          <td>Veolia Water NJ</td>
+          <td style="text-align:center;"><span class="pbadge pb-w">&#128167; Water</span></td>
+          <td style="text-align:center;color:#888;">XXXXXX422222</td>
+          <td class="water">$391.79</td>
+          <td class="water">$65.30</td>
+          <td style="color:#888;text-align:left;">Last bill: $59.50 due Mar 13, 2026</td>
+        </tr>
+        <tr>
+          <td>Verizon Wireless</td>
+          <td style="text-align:center;"><span class="pbadge pb-m">&#128241; Mobile</span></td>
+          <td style="text-align:center;color:#888;">...7065-00001</td>
+          <td class="mobile">$1,037.55</td>
+          <td class="mobile">$172.93</td>
+          <td style="color:#888;text-align:left;">Melissa's Gmail &bull; Dec '25 big drop ($47.16) &mdash; plan change?</td>
+        </tr>
+        <tr>
+          <td>Verizon Fios</td>
+          <td style="text-align:center;"><span class="pbadge pb-f">&#127760; Internet/Home</span></td>
+          <td style="text-align:center;color:#888;">...867-0001</td>
+          <td class="fios">$333.94</td>
+          <td class="fios">$55.66</td>
+          <td style="color:#888;text-align:left;">Juan's Gmail &bull; Bundle discount applied Dec '25 ($67.99&rarr;$42.99)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- KEY INSIGHTS -->
+  <div class="section-title">&#128269; Key Insights</div>
+  <div class="insight">
+    <h3>What Your Bills Tell Us</h3>
+    <p><strong>&#129398; Winter heating spike is the biggest utility driver.</strong> Your combined electric + gas jumped from $124 in September to $730 in January &mdash; nearly a 6&times; increase. This is driven by home heating and heavy EV charging during cold months when range anxiety is higher.</p>
+    <p><strong>&#128241; Wireless is your single biggest telecom expense.</strong> The mobile account (acct ...7065-00001) totaled $1,037.55 over 6 months &mdash; nearly 3&times; what Fios costs. The December drop to $47.16 is worth investigating: it likely reflects a line removal, plan downgrade, or one-time credit that may not continue. Jan&ndash;Feb settled at $140.06/mo.</p>
+    <p><strong>&#127760; Verizon Fios bundle discount is saving you $300/year.</strong> Your Fios bill dropped $25/month ($67.99 &rarr; $42.99) in December when Fios was added &mdash; likely a mobile+home bundle discount. Make sure this discount continues after any promotional period ends.</p>
+    <p><strong>&#9889; PSE&amp;G MyMeter threshold alerts firing constantly.</strong> Your 70.78 kWh/day threshold is regularly exceeded &mdash; sometimes hitting 170+ kWh/day. Your EV is a major contributor. Shifting to off-peak charging (after 11pm) is your biggest single savings opportunity.</p>
+    <p><strong>&#128167; Water is your most stable expense</strong> at ~$65/month with no dramatic swings. Treat it as a fixed baseline cost.</p>
+    <p><strong>&#127807; Arbor Energy is working.</strong> You're paying $0.1746/kWh vs PSE&amp;G's $0.1781/kWh &mdash; saving you roughly $78/year passively without changing any habits.</p>
+  </div>
+
+  <!-- RECOMMENDATIONS -->
+  <div class="section-title">&#128161; Recommendations</div>
+  <div class="insight">
+    <h3>Ways to Reduce Your Monthly Costs</h3>
+    <ul>
+      <li><strong>&#9200; Shift EV charging to off-peak hours (11pm&ndash;6am).</strong> PSE&amp;G Time-of-Use rates can cut EV charging costs by 30&ndash;40%. This could save $50&ndash;$100/month in winter. Check if your home charger supports a scheduled timer.</li>
+      <li><strong>&#128241; Investigate the Dec 2025 mobile bill drop.</strong> Your wireless bill went from $236.96 &rarr; $47.16 in December, then stabilized at $140.06. Log in to My Verizon Wireless to confirm what changed &mdash; was a line removed? Did a promotion expire? The new $140/mo rate is your likely baseline going forward.</li>
+      <li><strong>&#128176; Bundle review: $1,371 in telecom over 6 months.</strong> Combined mobile + Fios is running ~$228/month. Compare against T-Mobile Magenta plans, Comcast Xfinity, or Verizon's own bundled home+wireless deals &mdash; there may be $30&ndash;$60/month in savings available.</li>
+      <li><strong>&#127968; Look into PSE&amp;G Energy Efficiency rebates.</strong> NJ residents can qualify for rebates on smart thermostats, heat pump water heaters, attic insulation, and more. Visit pseg.com/home for programs that can directly reduce your winter heating bills.</li>
+      <li><strong>&#128167; Monitor water for leaks if bill exceeds $75.</strong> Veolia charges vary by ~$12/month. A slow toilet leak can add $15&ndash;$30/month unnoticed.</li>
+    </ul>
+  </div>
+
+  <!-- FOOTNOTE -->
+  <div class="footnote">
+    <strong>&#128204; Data Notes &mdash;</strong>
+    Analysis covers Sep 2025 &ndash; Feb 2026 (6 months) from Gmail bill notification emails.
+    <strong>Feb 2026 PSE&amp;G</strong> total ($714.72 combined) estimated as ~$545 electric / ~$170 gas based on Jan 2026 proportions &mdash; exact split unavailable from notification email.
+    <strong>Verizon Fios (acct ...867-0001):</strong> Bills sourced from Juan's Gmail (verizon-notification@ecrm-mail.verizon.com). Rate dropped $67.99 &rarr; $42.99 in December (bundle discount when Fios was ordered Dec 2, 2025).
+    <strong>Verizon Wireless (acct ...7065-00001):</strong> Bills sourced from Melissa's Gmail (VZWMail@ecrmemail.verizonwireless.com). December bill anomaly ($47.16) may reflect a plan change or one-time credit &mdash; log in to My Verizon to confirm.
+    Generated by Gmail Utility Analysis Tool &middot; March 2026.
+  </div>
+
+</div>
+
+<script>
+Chart.defaults.color = '#ccc';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.07)';
+
+const months = ['Sep 2025','Oct 2025','Nov 2025','Dec 2025','Jan 2026','Feb 2026*'];
+const elec   = [90.94,   79.20,   372.87,  442.30,  570.85,  545.00];
+const gas    = [33.09,   55.62,   131.48,  166.42,  159.95,  169.72];
+const water  = [60.41,   63.64,   72.43,   65.10,   70.71,   59.50];
+const mobile = [236.84,  236.47,  236.96,  47.16,   140.06,  140.06];
+const fios   = [67.99,   67.99,   67.99,   42.99,   42.99,   42.99];
+
+// Stacked Bar
+new Chart(document.getElementById('stackedBar'), {
+  type: 'bar',
+  data: {
+    labels: months,
+    datasets: [
+      { label: 'Electric',    data: elec,   backgroundColor: 'rgba(0,212,255,0.78)',   stack: 's' },
+      { label: 'Gas',         data: gas,    backgroundColor: 'rgba(255,149,0,0.78)',   stack: 's' },
+      { label: 'Water',       data: water,  backgroundColor: 'rgba(78,205,196,0.78)',  stack: 's' },
+      { label: 'VZW Mobile',  data: mobile, backgroundColor: 'rgba(244,114,182,0.78)', stack: 's' },
+      { label: 'Verizon Fios',data: fios,   backgroundColor: 'rgba(168,85,247,0.78)', stack: 's' }
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    scales: {
+      x: { stacked: true, ticks: { color: '#aaa', font: { size: 10 } } },
+      y: { stacked: true, ticks: { color: '#aaa', callback: v => '$'+v }, grid: { color: 'rgba(255,255,255,0.06)' } }
+    },
+    plugins: {
+      legend: { labels: { color: '#ccc', font: { size: 11 }, boxWidth: 13 } },
+      tooltip: {
+        callbacks: {
+          label: c => ' ' + c.dataset.label + ': $' + c.raw.toFixed(2),
+          footer: items => 'Total: $' + items.reduce((s,i) => s + i.raw, 0).toFixed(2)
+        }
+      }
+    }
+  }
+});
+
+// Donut
+const totals = [
+  elec.reduce((a,b)=>a+b,0),
+  gas.reduce((a,b)=>a+b,0),
+  water.reduce((a,b)=>a+b,0),
+  mobile.reduce((a,b)=>a+b,0),
+  fios.reduce((a,b)=>a+b,0)
+];
+new Chart(document.getElementById('donut'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Electric','Gas','Water','VZW Mobile','Verizon Fios'],
+    datasets: [{
+      data: totals,
+      backgroundColor: [
+        'rgba(0,212,255,0.82)',
+        'rgba(255,149,0,0.82)',
+        'rgba(78,205,196,0.82)',
+        'rgba(244,114,182,0.82)',
+        'rgba(168,85,247,0.82)'
+      ],
+      borderColor: '#0f1419', borderWidth: 3
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    cutout: '60%',
+    plugins: {
+      legend: { position: 'bottom', labels: { color: '#ccc', font: { size: 11 }, boxWidth: 13, padding: 10 } },
+      tooltip: {
+        callbacks: {
+          label: c => {
+            const t = c.dataset.data.reduce((a,b)=>a+b,0);
+            return ' ' + c.label + ': $' + c.raw.toFixed(0) + ' (' + (c.raw/t*100).toFixed(1) + '%)';
+          }
+        }
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>
