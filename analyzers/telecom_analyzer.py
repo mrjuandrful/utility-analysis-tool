@@ -5,6 +5,8 @@ Telecom Analyzer - Verizon Bills
 Inherits from BaseAnalyzer to search Gmail for Verizon bills
 (both Fios and Wireless) and parse them into structured data.
 
+Uses Jinja2 templates for HTML report generation instead of inline HTML.
+
 Supports:
   - Verizon Fios (Home Internet + Phone) - Bill code: 867-0001
   - Verizon Wireless (Mobile) - Bill code: 7065-00001
@@ -13,6 +15,7 @@ Supports:
 import re
 from typing import Dict, List
 from analyzers.base_analyzer import BaseAnalyzer
+from shared.html_generator import HTMLGenerator
 
 
 # Verizon bill patterns and metadata
@@ -211,7 +214,7 @@ class TelecomAnalyzer(BaseAnalyzer):
 
     def generate_html_report(self, data: Dict) -> str:
         """
-        Generate an HTML report from parsed Verizon bill data.
+        Generate an HTML report from parsed Verizon bill data using Jinja2 template.
 
         Args:
             data: Dict with bills_found, total_bills, etc.
@@ -220,152 +223,26 @@ class TelecomAnalyzer(BaseAnalyzer):
             HTML string ready to write to file
         """
         bills = data.get('bills_found', {})
-        timestamp = self.get_timestamp()
-        total_emails = self.total_emails
         bill_count = data.get('total_bills', 0)
 
         # Calculate percentage
-        email_percentage = round(
-            (bill_count / max(total_emails, 1)) * 100, 1
+        bill_percentage = round(
+            (bill_count / max(self.total_emails, 1)) * 100, 1
         )
 
-        html = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Verizon Bill Analysis Report</title>
-<style>
-  * {{ box-sizing: border-box; margin: 0; padding: 0; }}
-  body {{ font-family: 'Segoe UI', Arial, sans-serif; background: #f0f4f8; color: #1a1a2e; }}
+        # Prepare context for template
+        context = {
+            'timestamp': self.get_timestamp(),
+            'total_emails': self.total_emails,
+            'bills_found': bills,
+            'total_bills': bill_count,
+            'bill_percentage': bill_percentage,
+        }
 
-  header {{
-    background: linear-gradient(135deg, #C81828 0%, #EB3B23 100%);
-    color: white; padding: 28px 40px;
-  }}
-  header h1 {{ font-size: 1.7rem; font-weight: 700; }}
-  header p  {{ font-size: 0.95rem; opacity: 0.85; margin-top: 6px; }}
+        # Render using Jinja2 template
+        generator = HTMLGenerator()
+        return generator.render('telecom_report.html', context)
 
-  .container {{ max-width: 1200px; margin: 0 auto; padding: 28px 24px; }}
-
-  .kpi-grid {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-bottom: 28px; }}
-  .kpi {{ background: white; border-radius: 12px; padding: 22px 24px;
-         box-shadow: 0 2px 10px rgba(0,0,0,0.08); text-align: center; }}
-  .kpi .label {{ font-size: 0.8rem; font-weight: 600; text-transform: uppercase;
-                letter-spacing: 0.06em; color: #6b7280; margin-bottom: 10px; }}
-  .kpi .value {{ font-size: 2.2rem; font-weight: 800; line-height: 1; }}
-  .kpi .sub   {{ font-size: 0.82rem; color: #9ca3af; margin-top: 6px; }}
-  .kpi.red    {{ border-top: 4px solid #EB3B23; }} .kpi.red .value {{ color: #EB3B23; }}
-  .kpi.green  {{ border-top: 4px solid #1e8449; }} .kpi.green .value {{ color: #1e8449; }}
-  .kpi.orange {{ border-top: 4px solid #d97706; }} .kpi.orange .value {{ color: #d97706; }}
-
-  .section-title {{
-    font-size: 1rem; font-weight: 700; color: #C81828;
-    text-transform: uppercase; letter-spacing: 0.05em;
-    border-left: 4px solid #EB3B23; padding-left: 10px;
-    margin-bottom: 16px; margin-top: 28px;
-  }}
-
-  .table-card {{ background: white; border-radius: 12px; padding: 24px 28px;
-                box-shadow: 0 2px 10px rgba(0,0,0,0.08); margin-bottom: 28px; overflow-x: auto; }}
-  table {{ width: 100%; border-collapse: collapse; font-size: 0.88rem; }}
-  thead th {{
-    background: #C81828; color: white; padding: 10px 12px;
-    text-align: left; font-weight: 600; white-space: nowrap;
-  }}
-  tbody tr:nth-child(even) {{ background: #f0f6fc; }}
-  tbody tr:hover {{ background: #ffeeee; transition: background 0.15s; }}
-  td {{ padding: 9px 12px; border-bottom: 1px solid #e5e7eb; }}
-  td:first-child {{ font-weight: 600; color: #C81828; }}
-
-  .info-box {{ background: #fff3f3; border-left: 4px solid #EB3B23; padding: 15px;
-              border-radius: 6px; margin-bottom: 20px; font-size: 0.9rem; }}
-  .info-box strong {{ color: #C81828; }}
-
-  .footnote {{ font-size: 0.78rem; color: #9ca3af; line-height: 1.6;
-              background: white; border-radius: 10px; padding: 16px 20px;
-              box-shadow: 0 1px 4px rgba(0,0,0,0.06); margin-top: 28px; }}
-
-  @media (max-width: 768px) {{
-    .kpi-grid {{ grid-template-columns: 1fr; }}
-  }}
-</style>
-</head>
-<body>
-
-<header>
-  <h1>📱 Verizon Bill Analysis Report</h1>
-  <p>Telecom Service Bills Identified From Email Activity</p>
-</header>
-
-<div class="container">
-
-  <div class="info-box">
-    📌 <strong>Report Generated:</strong> {timestamp} | <strong>Emails Analyzed:</strong> {total_emails}
-  </div>
-
-  <div class="kpi-grid">
-    <div class="kpi red">
-      <div class="label">Total Emails Scanned</div>
-      <div class="value">{total_emails}</div>
-      <div class="sub">Messages analyzed</div>
-    </div>
-    <div class="kpi orange">
-      <div class="label">Bill Emails Found</div>
-      <div class="value">{bill_count}</div>
-      <div class="sub">{email_percentage}% of total</div>
-    </div>
-    <div class="kpi green">
-      <div class="label">Services Identified</div>
-      <div class="value">{len(bills)}</div>
-      <div class="sub">Unique services</div>
-    </div>
-  </div>
-
-  <div class="section-title">📊 Services Identified</div>
-
-  <div class="table-card">
-    <table>
-      <thead>
-        <tr>
-          <th>Service</th>
-          <th>Type</th>
-          <th style="text-align: right;">Bills Found</th>
-          <th>Latest Bill</th>
-        </tr>
-      </thead>
-      <tbody>
-"""
-
-        for service_name, info in sorted(
-            bills.items(), key=lambda x: x[1]['bills'], reverse=True
-        ):
-            html += f"""        <tr>
-          <td><strong>{service_name}</strong></td>
-          <td>{info['type']}</td>
-          <td style="text-align: right;">{info['bills']}</td>
-          <td>{info['latest'][:10]}</td>
-        </tr>
-"""
-
-        html += """      </tbody>
-    </table>
-  </div>
-
-  <div class="footnote">
-    <strong>ℹ️ About This Report:</strong> This analysis scanned your Gmail for emails from Verizon
-    and identified which telecom services you use (Fios or Wireless). For detailed bill analysis with usage breakdown,
-    cost optimization, and plan recommendations, submit your Verizon bills using our
-    <a href="https://mrjuandrful.typeform.com/to/Je0SD0aB" style="color: #C81828; font-weight: bold;">
-    Telecom Bill Analysis Form</a>. Analysis typically completed within 24 hours.
-  </div>
-
-</div>
-
-</body>
-</html>
-"""
-        return html
 
     def run(self, export_json: bool = True, export_html: bool = False) -> Dict:
         """
