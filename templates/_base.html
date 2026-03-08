@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Financial Analysis Report{% endblock %}</title>
+    <style>
+        {% block styles %}
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f0f4f8;
+            color: #1a1a2e;
+            line-height: 1.6;
+        }
+        header {
+            background: linear-gradient(135deg, #1F4E79 0%, #2E75B6 100%);
+            color: white;
+            padding: 28px 40px;
+        }
+        header h1 {
+            font-size: 1.7rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+        header p {
+            font-size: 0.95rem;
+            opacity: 0.85;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 28px 24px;
+        }
+        .info-box {
+            background: #eff6ff;
+            border-left: 4px solid #2E75B6;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+        }
+        .info-box strong {
+            color: #1F4E79;
+        }
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-bottom: 28px;
+        }
+        .kpi {
+            background: white;
+            border-radius: 12px;
+            padding: 22px 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+        .kpi .label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #6b7280;
+            margin-bottom: 10px;
+        }
+        .kpi .value {
+            font-size: 2.2rem;
+            font-weight: 800;
+            line-height: 1;
+        }
+        .kpi .sub {
+            font-size: 0.82rem;
+            color: #9ca3af;
+            margin-top: 6px;
+        }
+        .section-title {
+            font-size: 1rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-left: 4px solid #2E75B6;
+            padding-left: 10px;
+            margin-bottom: 16px;
+            margin-top: 28px;
+        }
+        .table-card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px 28px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 28px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+        thead th {
+            background: #1F4E79;
+            color: white;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        thead th:first-child {
+            border-radius: 6px 0 0 0;
+        }
+        thead th:last-child {
+            border-radius: 0 6px 0 0;
+        }
+        tbody tr:nth-child(even) {
+            background: #f0f6fc;
+        }
+        tbody tr:hover {
+            background: #dbeafe;
+            transition: background 0.15s;
+        }
+        td {
+            padding: 9px 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        td:first-child {
+            font-weight: 600;
+            color: #1F4E79;
+        }
+        td.num {
+            text-align: right;
+        }
+        .footnote {
+            font-size: 0.78rem;
+            color: #9ca3af;
+            line-height: 1.6;
+            background: white;
+            border-radius: 10px;
+            padding: 16px 20px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+            margin-top: 28px;
+        }
+        .footnote a {
+            color: #2E75B6;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .footnote a:hover {
+            text-decoration: underline;
+        }
+        @media (max-width: 768px) {
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+            header {
+                padding: 20px 24px;
+            }
+            header h1 {
+                font-size: 1.3rem;
+            }
+        }
+        {% endblock %}
+    </style>
+</head>
+<body>
+    <header>
+        <h1>{% block header_title %}Financial Analysis Report{% endblock %}</h1>
+        <p>{% block header_subtitle %}Document Analysis Results{% endblock %}</p>
+    </header>
+    <div class="container">
+        {% block content %}
+        <p>No content provided.</p>
+        {% endblock %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,79 @@
+{% extends "_base.html" %}
+
+{% block title %}American Express Credit Card Analysis Report{% endblock %}
+
+{% block header_title %}💳 American Express Statement Analysis{% endblock %}
+{% block header_subtitle %}Credit Card Spending & Rewards Analysis{% endblock %}
+
+{% block styles %}
+{{ super() }}
+header { background: linear-gradient(135deg, #006B3F 0%, #00A86B 100%); }
+.section-title { border-left-color: #00A86B; }
+thead th { background: #006B3F; }
+td:first-child { color: #006B3F; }
+.kpi.green { border-top: 4px solid #00A86B; }
+.kpi.green .value { color: #00A86B; }
+.kpi.blue { border-top: 4px solid #0066CC; }
+.kpi.blue .value { color: #0066CC; }
+.kpi.gold { border-top: 4px solid #D4AF37; }
+.kpi.gold .value { color: #D4AF37; }
+.info-box { background: #f0fdf4; border-left-color: #00A86B; }
+.info-box strong { color: #006B3F; }
+.footnote a { color: #006B3F; }
+{% endblock %}
+
+{% block content %}
+<div class="info-box">
+    📌 <strong>Report Generated:</strong> {{ timestamp }} | <strong>Statements Analyzed:</strong> {{ total_statements }}
+</div>
+
+<div class="kpi-grid">
+    <div class="kpi green">
+        <div class="label">Total Spending</div>
+        <div class="value">{{ total_spent | format_currency }}</div>
+        <div class="sub">All transactions</div>
+    </div>
+    <div class="kpi blue">
+        <div class="label">Average Monthly Spend</div>
+        <div class="value">{{ avg_monthly | format_currency }}</div>
+        <div class="sub">Per statement period</div>
+    </div>
+    <div class="kpi gold">
+        <div class="label">Estimated Rewards</div>
+        <div class="value">{{ estimated_rewards | format_currency }}</div>
+        <div class="sub">Points value</div>
+    </div>
+</div>
+
+<div class="section-title">📊 Spending by Category</div>
+
+<div class="table-card">
+    <table>
+        <thead>
+            <tr>
+                <th>Category</th>
+                <th style="text-align: right;">Transactions</th>
+                <th style="text-align: right;">Total Spent</th>
+                <th style="text-align: right;">% of Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for category, data in spending_by_category | dictsort(by='value', reverse=true, attribute='total') %}
+            <tr>
+                <td><strong>{{ category }}</strong></td>
+                <td class="num">{{ data.count }}</td>
+                <td class="num">{{ data.total | format_currency }}</td>
+                <td class="num">{{ data.percentage | format_percent }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="footnote">
+    <strong>ℹ️ About This Report:</strong> This analysis examined your AMEX credit card statements
+    and identified spending patterns by category. For detailed financial analysis with savings opportunities,
+    budget recommendations, and rewards optimization, submit your credit card statements using our
+    <a href="https://mrjuandrful.typeform.com/to/Je0SD0aB">Credit Card Analysis Form</a>. Analysis typically completed within 24 hours.
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "_base.html" %}
+
+{% block title %}Gmail Utility Analysis Report{% endblock %}
+
+{% block header_title %}📊 Gmail Utility Analysis Report{% endblock %}
+{% block header_subtitle %}Utility Company Identification Based on Email Activity{% endblock %}
+
+{% block styles %}
+{{ super() }}
+.kpi.blue { border-top: 4px solid #2E75B6; }
+.kpi.blue .value { color: #2E75B6; }
+.kpi.green { border-top: 4px solid #1e8449; }
+.kpi.green .value { color: #1e8449; }
+.kpi.orange { border-top: 4px solid #d97706; }
+.kpi.orange .value { color: #d97706; }
+{% endblock %}
+
+{% block content %}
+<div class="info-box">
+    📌 <strong>Report Generated:</strong> {{ timestamp }} | <strong>Emails Analyzed:</strong> {{ total_emails }}
+</div>
+
+<div class="kpi-grid">
+    <div class="kpi blue">
+        <div class="label">Total Emails Scanned</div>
+        <div class="value">{{ total_emails }}</div>
+        <div class="sub">Messages analyzed</div>
+    </div>
+    <div class="kpi orange">
+        <div class="label">Utility Emails Found</div>
+        <div class="value">{{ utility_emails }}</div>
+        <div class="sub">{{ utility_percentage }}% of total</div>
+    </div>
+    <div class="kpi green">
+        <div class="label">Utilities Identified</div>
+        <div class="value">{{ utilities_found | length }}</div>
+        <div class="sub">Unique companies</div>
+    </div>
+</div>
+
+<div class="section-title">📋 Companies Identified</div>
+
+<div class="table-card">
+    <table>
+        <thead>
+            <tr>
+                <th>Company</th>
+                <th>Service Type</th>
+                <th>Region</th>
+                <th style="text-align: right;">Emails Found</th>
+                <th>Latest Email</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for company_name, info in utilities_found | dictsort(by='value', reverse=true, attribute='emails') %}
+            <tr>
+                <td><strong>{{ company_name }}</strong></td>
+                <td>{{ info.type }}</td>
+                <td>{{ info.state }}</td>
+                <td class="num">{{ info.emails }}</td>
+                <td>{{ info.latest[:10] | format_date }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="footnote">
+    <strong>ℹ️ About This Report:</strong> This analysis scanned your Gmail for emails from known utility companies
+    and identified which providers serve you. For detailed bill analysis with cost breakdowns, appliance-by-appliance
+    estimates, and personalized savings recommendations, submit your utility PDFs using our
+    <a href="https://mrjuandrful.typeform.com/to/Je0SD0aB">Utility Bill Analysis Form</a>. Analysis typically completed within 24 hours.
+</div>
+{% endblock %}

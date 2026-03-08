@@ -1,0 +1,80 @@
+{% extends "_base.html" %}
+
+{% block title %}Verizon Telecom Bill Analysis Report{% endblock %}
+
+{% block header_title %}📱 Verizon Bill Analysis Report{% endblock %}
+{% block header_subtitle %}Telecom Service Bills Identified From Email Activity{% endblock %}
+
+{% block styles %}
+{{ super() }}
+header { background: linear-gradient(135deg, #C81828 0%, #EB3B23 100%); }
+.section-title { border-left-color: #EB3B23; }
+thead th { background: #C81828; }
+tbody tr:hover { background: #ffeeee; }
+td:first-child { color: #C81828; }
+.kpi.red { border-top: 4px solid #EB3B23; }
+.kpi.red .value { color: #EB3B23; }
+.kpi.green { border-top: 4px solid #1e8449; }
+.kpi.green .value { color: #1e8449; }
+.kpi.orange { border-top: 4px solid #d97706; }
+.kpi.orange .value { color: #d97706; }
+.info-box { background: #fff3f3; border-left-color: #EB3B23; }
+.info-box strong { color: #C81828; }
+.footnote a { color: #C81828; }
+{% endblock %}
+
+{% block content %}
+<div class="info-box">
+    📌 <strong>Report Generated:</strong> {{ timestamp }} | <strong>Emails Analyzed:</strong> {{ total_emails }}
+</div>
+
+<div class="kpi-grid">
+    <div class="kpi red">
+        <div class="label">Total Emails Scanned</div>
+        <div class="value">{{ total_emails }}</div>
+        <div class="sub">Messages analyzed</div>
+    </div>
+    <div class="kpi orange">
+        <div class="label">Bill Emails Found</div>
+        <div class="value">{{ total_bills }}</div>
+        <div class="sub">{{ bill_percentage }}% of total</div>
+    </div>
+    <div class="kpi green">
+        <div class="label">Services Identified</div>
+        <div class="value">{{ bills_found | length }}</div>
+        <div class="sub">Unique services</div>
+    </div>
+</div>
+
+<div class="section-title">📊 Services Identified</div>
+
+<div class="table-card">
+    <table>
+        <thead>
+            <tr>
+                <th>Service</th>
+                <th>Type</th>
+                <th style="text-align: right;">Bills Found</th>
+                <th>Latest Bill</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for service_name, info in bills_found | dictsort(by='value', reverse=true, attribute='bills') %}
+            <tr>
+                <td><strong>{{ service_name }}</strong></td>
+                <td>{{ info.type }}</td>
+                <td class="num">{{ info.bills }}</td>
+                <td>{{ info.latest[:10] | format_date }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="footnote">
+    <strong>ℹ️ About This Report:</strong> This analysis scanned your Gmail for emails from Verizon
+    and identified which telecom services you use (Fios or Wireless). For detailed bill analysis with usage breakdown,
+    cost optimization, and plan recommendations, submit your Verizon bills using our
+    <a href="https://mrjuandrful.typeform.com/to/Je0SD0aB">Telecom Bill Analysis Form</a>. Analysis typically completed within 24 hours.
+</div>
+{% endblock %}
