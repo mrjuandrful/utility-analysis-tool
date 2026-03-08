@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Utility Analysis Tool - Beta Landing Page Mockup</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f1419 0%, #1a1f2e 100%);
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            padding-top: 40px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            color: #00d4ff;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+
+        header .tagline {
+            font-size: 1.2rem;
+            color: #a0a0a0;
+            margin-bottom: 30px;
+        }
+
+        /* Hero Section */
+        .hero {
+            background: rgba(13, 59, 102, 0.3);
+            border: 2px solid #0d7377;
+            border-radius: 15px;
+            padding: 40px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .hero h2 {
+            font-size: 1.8rem;
+            color: #4ecdc4;
+            margin-bottom: 20px;
+        }
+
+        .hero p {
+            font-size: 1.1rem;
+            color: #d0d0d0;
+            line-height: 1.8;
+        }
+
+        /* Problem/Solution Grid */
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: #1a1f2e;
+            border-left: 4px solid;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .card.problem {
+            border-left-color: #ff6b6b;
+        }
+
+        .card.solution {
+            border-left-color: #51cf66;
+        }
+
+        .card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card p {
+            color: #b0b0b0;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+
+        /* Features */
+        .features {
+            background: rgba(78, 205, 196, 0.1);
+            border: 2px solid #4ecdc4;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 40px;
+        }
+
+        .features h3 {
+            color: #4ecdc4;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            padding: 10px 0;
+            padding-left: 30px;
+            position: relative;
+            color: #d0d0d0;
+            font-size: 0.95rem;
+        }
+
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #51cf66;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        /* Beta Badge */
+        .beta-badge {
+            display: inline-block;
+            background: #ff9500;
+            color: #000;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, rgba(13, 59, 102, 0.5), rgba(13, 115, 119, 0.5));
+            border: 2px solid #00d4ff;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .cta-section h2 {
+            color: #00d4ff;
+            font-size: 1.6rem;
+            margin-bottom: 20px;
+        }
+
+        .cta-section p {
+            color: #d0d0d0;
+            font-size: 1rem;
+            margin-bottom: 30px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #00d4ff 0%, #0d7377 100%);
+            color: #000;
+            padding: 18px 50px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(0, 212, 255, 0.3);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 30px 0;
+            color: #666;
+            font-size: 0.9rem;
+            border-top: 1px solid #2a3f4a;
+        }
+
+        footer p {
+            margin-bottom: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            header h1 {
+                font-size: 2rem;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero, .cta-section {
+                padding: 25px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <h1>💡 Utility Analysis</h1>
+            <p class="tagline">Understand Your Energy Spending</p>
+        </header>
+
+        <!-- Hero Section -->
+        <div class="hero">
+            <h2>Get Your Utility Bill Analyzed</h2>
+            <p>Completely Free (Beta Testing)</p>
+        </div>
+
+        <!-- Problem / Solution -->
+        <div class="grid">
+            <div class="card problem">
+                <h3>❌ The Problem</h3>
+                <p>Confused by your electricity, gas, and water bills? Don't know why they spike in winter? Feel like you might be overpaying?</p>
+            </div>
+            <div class="card solution">
+                <h3>✅ The Solution</h3>
+                <p>Get a professional analysis breaking down exactly where your money goes—and discover savings opportunities you're missing.</p>
+            </div>
+        </div>
+
+        <!-- What You Get -->
+        <div class="features">
+            <h3>📊 What's Included in Your Free Analysis</h3>
+            <ul class="feature-list">
+                <li>Complete monthly breakdown by utility type</li>
+                <li>Cost-by-appliance estimates (furnace, AC, EV charging, etc.)</li>
+                <li>Seasonal trend analysis & explanations</li>
+                <li>Interactive charts and visualizations</li>
+                <li>Actionable savings recommendations</li>
+                <li>Professional HTML report + Excel spreadsheet</li>
+            </ul>
+        </div>
+
+        <!-- CTA -->
+        <div class="cta-section">
+            <div class="beta-badge">🎯 Beta Testing - Free</div>
+            <h2>Ready to Understand Your Utility Bills?</h2>
+            <p>Join our beta program and get your free analysis today. All we ask is your feedback to help us improve.</p>
+            <a href="#" class="cta-button">📝 Join the Beta</a>
+            <p style="margin-top: 20px; font-size: 0.9rem; color: #888;">Takes 5 minutes • Your utility PDFs required • Results in 24 hours</p>
+        </div>
+
+        <!-- FAQ Quick Section -->
+        <div style="background: #131820; border-radius: 10px; padding: 25px; margin-bottom: 40px;">
+            <h3 style="color: #4ecdc4; margin-bottom: 15px;">❓ Quick Questions</h3>
+            <div style="color: #b0b0b0; font-size: 0.95rem;">
+                <p style="margin-bottom: 12px;"><strong style="color: #d0d0d0;">How much does it cost?</strong> <br>It's FREE during beta testing.</p>
+                <p style="margin-bottom: 12px;"><strong style="color: #d0d0d0;">What do I need?</strong> <br>Your utility bill PDFs from the last 3-6 months.</p>
+                <p style="margin-bottom: 12px;"><strong style="color: #d0d0d0;">How long does it take?</strong> <br>You'll get your analysis within 24 hours.</p>
+                <p><strong style="color: #d0d0d0;">Is my data private?</strong> <br>Yes. We only use your data to create your report.</p>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer>
+            <p>📧 Questions? Email: <strong>your-email@example.com</strong></p>
+            <p style="color: #555; margin-top: 20px;">Utility Analysis Tool • Beta Version 2026</p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Utility Cost Analysis — {{CUSTOMER_NAME}}</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #0f1419; color: #e0e0e0; }
+
+  header {
+    background: linear-gradient(135deg, #1a1f2e 0%, #0d3b66 100%);
+    color: #fff; padding: 28px 40px; border-bottom: 2px solid #0d7377;
+  }
+  header h1 { font-size: 1.7rem; font-weight: 700; }
+  header p  { font-size: 0.95rem; opacity: 0.85; margin-top: 6px; }
+
+  .container { max-width: 1400px; margin: 0 auto; padding: 28px 24px; }
+
+  /* KPI Cards */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-bottom: 28px; }
+  .kpi { background: #1a1f2e; border-radius: 12px; padding: 22px 24px;
+         box-shadow: 0 4px 15px rgba(0,0,0,0.4); text-align: center; border-left: 4px solid; }
+  .kpi .label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase;
+                letter-spacing: 0.06em; color: #a0a0a0; margin-bottom: 8px; }
+  .kpi .value { font-size: 1.9rem; font-weight: 800; line-height: 1; }
+  .kpi .sub   { font-size: 0.78rem; color: #888; margin-top: 6px; }
+  .kpi.blue   { border-left-color: #00d4ff; } .kpi.blue   .value { color: #00d4ff; }
+  .kpi.orange { border-left-color: #ff9500; } .kpi.orange .value { color: #ff9500; }
+  .kpi.cyan   { border-left-color: #4ecdc4; } .kpi.cyan   .value { color: #4ecdc4; }
+  .kpi.gold   { border-left-color: #ffd700; } .kpi.gold   .value { color: #ffd700; }
+
+  /* Section titles */
+  .section-title {
+    font-size: 1rem; font-weight: 700; color: #00d4ff;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    border-left: 4px solid #0d7377; padding-left: 10px;
+    margin-bottom: 16px; margin-top: 28px;
+  }
+
+  /* Cards */
+  .card { background: #1a1f2e; border-radius: 12px; padding: 24px;
+          box-shadow: 0 4px 15px rgba(0,0,0,0.4); border: 1px solid #2a3f4a; margin-bottom: 20px; }
+  .card h3 { font-size: 0.95rem; font-weight: 700; color: #00d4ff; margin-bottom: 16px; }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; font-size: 0.85rem; margin-bottom: 20px; }
+  thead th {
+    background: #0d3b66; color: #00d4ff; padding: 10px 12px;
+    text-align: center; font-weight: 600; white-space: nowrap; border-bottom: 2px solid #0d7377;
+  }
+  tbody tr:nth-child(even) { background: #131820; }
+  tbody tr:hover { background: #1f2a35; transition: background 0.15s; }
+  td { padding: 9px 12px; border-bottom: 1px solid #2a3f4a; }
+  td:first-child { font-weight: 600; color: #00d4ff; }
+  td.num { text-align: right; }
+  td.elec   { text-align: right; color: #00d4ff; background: rgba(0,212,255,0.1); }
+  td.gas    { text-align: right; color: #ff9500; background: rgba(255,149,0,0.1); }
+  td.water  { text-align: right; color: #4ecdc4; background: rgba(78,205,196,0.1); }
+  td.total  { text-align: right; color: #ffd700; background: rgba(255,215,0,0.1); font-weight: 600; }
+  tfoot td { font-weight: 700; background: #0d3b66; padding: 10px 12px;
+             border-top: 2px solid #0d7377; color: #00d4ff; }
+
+  /* Details grid */
+  .details-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 28px; }
+  .detail-box { background: #0f1419; border-left: 4px solid #0d7377; padding: 16px; border-radius: 8px; }
+  .detail-box h4 { color: #00d4ff; font-size: 0.9rem; margin-bottom: 10px; font-weight: 700; }
+  .detail-box p { font-size: 0.87rem; line-height: 1.5; color: #d0d0d0; margin: 6px 0; }
+  .detail-box .amount { color: #ffd700; font-weight: 700; font-size: 1.1rem; }
+
+  /* Insight box */
+  .insight { background: #0d3b66; border: 2px solid #0d7377; border-radius: 12px; padding: 20px 24px; margin-bottom: 28px; }
+  .insight h3 { color: #4ecdc4; margin-bottom: 12px; font-size: 0.95rem; }
+  .insight p { line-height: 1.6; color: #d0d0d0; margin-bottom: 10px; }
+  .insight ul { margin-left: 20px; }
+  .insight li { margin: 6px 0; color: #d0d0d0; }
+
+  /* Footnote */
+  .footnote { font-size: 0.78rem; color: #666; line-height: 1.6;
+              background: #131820; border-radius: 10px; padding: 16px 20px;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.3); border: 1px solid #2a3f4a; }
+
+  .charts-container { height: 250px; margin-bottom: 20px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>💡 Complete Household Utility Analysis</h1>
+  <p>{{DATE_RANGE}} | {{ADDRESS}} | Electricity · Gas · Water</p>
+</header>
+
+<div class="container">
+
+  <!-- MAIN UTILITY OVERVIEW -->
+  <div class="kpi-grid" style="margin-top: 24px;">
+    <div class="kpi blue">
+      <div class="label">Electricity</div>
+      <div class="value">{{COST_ELECTRICITY}}</div>
+      <div class="sub">{{KWH_ELECTRICITY}} kWh</div>
+    </div>
+    <div class="kpi orange">
+      <div class="label">Gas</div>
+      <div class="value">{{COST_GAS}}</div>
+      <div class="sub">{{THERMS_GAS}} therms</div>
+    </div>
+    <div class="kpi cyan">
+      <div class="label">Water</div>
+      <div class="value">{{COST_WATER}}</div>
+      <div class="sub">{{WATER_PROVIDER}}</div>
+    </div>
+    <div class="kpi gold">
+      <div class="label">Total Utilities</div>
+      <div class="value">{{COST_TOTAL}}</div>
+      <div class="sub">6-month total</div>
+    </div>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi" style="border-left-color: #888;">
+      <div class="label">Avg Monthly Utilities</div>
+      <div class="value" style="color: #888;">{{COST_MONTHLY_AVG}}</div>
+      <div class="sub">Elec + Gas + Water</div>
+    </div>
+  </div>
+
+  <!-- MONTHLY UTILITY BREAKDOWN -->
+  <div class="section-title">📊 Monthly Utility Breakdown</div>
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Month</th>
+          <th>⚡ Electricity</th>
+          <th>🔥 Gas</th>
+          <th>💧 Water</th>
+          <th>📊 Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{MONTHLY_BREAKDOWN_ROWS}}
+      </tbody>
+      <tfoot>
+        <tr>
+          <td>6-MONTH TOTAL</td>
+          <td class="elec">{{COST_ELECTRICITY}}</td>
+          <td class="gas">{{COST_GAS}}</td>
+          <td class="water">{{COST_WATER}}</td>
+          <td class="total">{{COST_TOTAL}}</td>
+        </tr>
+        <tr>
+          <td>MONTHLY AVG</td>
+          <td class="elec">{{COST_MONTHLY_AVG}}</td>
+          <td class="gas">{{COST_GAS_MONTHLY_AVG}}</td>
+          <td class="water">{{COST_WATER_MONTHLY_AVG}}</td>
+          <td class="total">{{COST_MONTHLY_AVG}}</td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+
+  <!-- KEY INSIGHTS -->
+  <div class="section-title">🔍 Key Insights</div>
+  <div class="insight">
+    <h3>What Your Bills Tell Us</h3>
+    {{KEY_INSIGHTS}}
+  </div>
+
+  <!-- RECOMMENDATIONS -->
+  <div class="section-title">💡 Recommendations</div>
+  <div class="insight">
+    <h3>Ways to Reduce Your Utility Costs</h3>
+    {{RECOMMENDATIONS}}
+  </div>
+
+  <!-- FOOTNOTE -->
+  <div class="footnote" style="margin-top: 28px;">
+    <strong>📌 Notes:</strong> This analysis covers {{DATE_RANGE}} utility usage.
+    Data extracted from your submitted utility bill PDFs.
+    Analysis provided by Utility Analysis Tool. For questions, contact {{SUPPORT_EMAIL}}.
+  </div>
+
+</div><!-- /container -->
+
+<script>
+// Chart.js implementation will be added here when you integrate this template
+// For now, you can remove this if not using charts
+</script>
+
+</body>
+</html>
