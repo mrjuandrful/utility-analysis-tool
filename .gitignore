@@ -1,1 +1,64 @@
+# Lock files
 .~lock*
+.git/index.lock
+.git/HEAD.lock
+
+# Python cache & bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDE & Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Credentials & secrets (NEVER commit)
+credentials.json
+token.json
+.env
+*.key
+*.pem
+
+# Generated outputs (should be rebuilt/recalculated)
+data/*.json
+reports/*.html
+reports/*.xlsx
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
