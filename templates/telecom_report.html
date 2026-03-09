@@ -21,6 +21,17 @@ td:first-child { color: #C81828; }
 .info-box { background: #fff3f3; border-left-color: #EB3B23; }
 .info-box strong { color: #C81828; }
 .footnote a { color: #C81828; }
+/* Responsive info box */
+@media (max-width: 480px) {
+    .info-box {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .info-box strong {
+        display: block;
+    }
+}
 {% endblock %}
 
 {% block content %}

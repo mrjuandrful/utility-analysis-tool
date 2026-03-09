@@ -13,6 +13,17 @@
 .kpi.green .value { color: #1e8449; }
 .kpi.orange { border-top: 4px solid #d97706; }
 .kpi.orange .value { color: #d97706; }
+/* Responsive info box */
+@media (max-width: 480px) {
+    .info-box {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    .info-box strong {
+        display: block;
+    }
+}
 {% endblock %}
 
 {% block content %}
