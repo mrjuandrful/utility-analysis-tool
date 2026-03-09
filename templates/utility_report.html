@@ -63,7 +63,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for company_name, info in utilities_found | dictsort(by='value', reverse=true, attribute='emails') %}
+            {% for company_name, info in utilities_found | dictsort %}
             <tr>
                 <td><strong>{{ company_name }}</strong></td>
                 <td>{{ info.type }}</td>

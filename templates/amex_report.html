@@ -69,7 +69,7 @@ td:first-child { color: #006B3F; }
             </tr>
         </thead>
         <tbody>
-            {% for category, data in spending_by_category | dictsort(by='value', reverse=true, attribute='total') %}
+            {% for category, data in spending_by_category | dictsort %}
             <tr>
                 <td><strong>{{ category }}</strong></td>
                 <td class="num">{{ data.count }}</td>

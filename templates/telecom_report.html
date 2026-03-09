@@ -70,7 +70,7 @@ td:first-child { color: #C81828; }
             </tr>
         </thead>
         <tbody>
-            {% for service_name, info in bills_found | dictsort(by='value', reverse=true, attribute='bills') %}
+            {% for service_name, info in bills_found | dictsort %}
             <tr>
                 <td><strong>{{ service_name }}</strong></td>
                 <td>{{ info.type }}</td>
