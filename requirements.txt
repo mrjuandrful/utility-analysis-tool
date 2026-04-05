@@ -5,7 +5,7 @@ google-api-python-client==2.100.0
 
 # Data Processing & Excel
 pandas==2.1.4
-openpyxl==3.11.0
+openpyxl==3.1.5
 
 # HTML/Text Parsing
 beautifulsoup4==4.12.2
@@ -15,7 +15,7 @@ Jinja2==3.1.2
 PyYAML==6.0.1
 
 # PDF extraction (optional)
-PyPDF2==4.0.1
+PyPDF2==3.0.1
 
 # Development & Testing
 pytest==7.4.3

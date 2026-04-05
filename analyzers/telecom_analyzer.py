@@ -50,9 +50,9 @@ class TelecomAnalyzer(BaseAnalyzer):
     - Account number
     """
 
-    def __init__(self, service=None):
+    def __init__(self):
         """Initialize the telecom analyzer."""
-        super().__init__(service=service)
+        super().__init__(analyzer_name='TelecomAnalyzer')
         self.analyzer_type = 'telecom'
         self.bills_found = {}
         self.total_bills = 0

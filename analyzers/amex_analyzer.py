@@ -41,9 +41,9 @@ class AMEXAnalyzer(BaseAnalyzer):
     categorizes spending, and estimates rewards points earned.
     """
 
-    def __init__(self, service=None):
+    def __init__(self):
         """Initialize the AMEX analyzer."""
-        super().__init__(service=service)
+        super().__init__(analyzer_name='AMEXAnalyzer')
         self.analyzer_type = 'credit_card'
         self.card_type = 'AMEX'
         self.statements_found = []
