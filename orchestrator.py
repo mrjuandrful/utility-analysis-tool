@@ -5,12 +5,14 @@ Financial Document Analyzer Orchestrator
 Master CLI that coordinates all specialized analyzers (Utility, Telecom, AMEX)
 to provide comprehensive financial analysis from Gmail.
 
+Supports automatic email sending via Google Workspace CLI (gws).
+
 Usage:
-    python orchestrator.py                    # Run all analyzers
-    python orchestrator.py --utility          # Run only utility analyzer
-    python orchestrator.py --telecom          # Run only telecom analyzer
-    python orchestrator.py --amex             # Run only AMEX analyzer
-    python orchestrator.py --html             # Generate HTML reports
+    python orchestrator.py                              # Run all analyzers
+    python orchestrator.py --utility                    # Run only utility analyzer
+    python orchestrator.py --utility --html             # Generate utility HTML report
+    python orchestrator.py --utility --html --send-email # Generate & send email report
+    python orchestrator.py --html                       # Generate all HTML reports
 """
 
 import os
@@ -23,6 +25,7 @@ from pathlib import Path
 from analyzers.gmail_utility_analyzer import GmailUtilityAnalyzer
 from analyzers.telecom_analyzer import TelecomAnalyzer
 from analyzers.amex_analyzer import AMEXAnalyzer
+from email_sender import GWSEmailSender
 
 
 class FinancialAnalyzerOrchestrator:
@@ -436,12 +439,63 @@ class FinancialAnalyzerOrchestrator:
 """
         return html
 
+    def send_utility_report_email(self, recipients: Optional[List[str]] = None) -> dict:
+        """
+        Send utility report via email using gws.
+
+        Args:
+            recipients: List of email addresses to send to
+
+        Returns:
+            Dict with send status
+        """
+        if not self.export_html:
+            print("⚠️  HTML export disabled. Enable with --html to send emails.")
+            return {'success': False, 'error': 'HTML export required'}
+
+        try:
+            # Get the utility report HTML
+            utility_result = self.results.get('utility', {})
+            if not utility_result.get('success') or not utility_result.get('html_file'):
+                print("⚠️  No utility report HTML available to send.")
+                return {'success': False, 'error': 'No utility report generated'}
+
+            html_file = utility_result.get('html_file')
+            if not os.path.exists(html_file):
+                print(f"⚠️  HTML file not found: {html_file}")
+                return {'success': False, 'error': 'HTML file not found'}
+
+            # Read HTML content
+            with open(html_file, 'r') as f:
+                html_content = f.read()
+
+            # Send email
+            sender = GWSEmailSender()
+            result = sender.send_utility_report(
+                html_content=html_content,
+                recipients=recipients,
+                month=datetime.now().strftime("%B %Y")
+            )
+
+            if result.get('success'):
+                print(f"✅ Utility report email prepared for sending")
+                print(f"   Recipients: {', '.join(result.get('to', []))}")
+                print(f"   Subject: {result.get('subject')}")
+            else:
+                print(f"❌ Failed to prepare email: {result.get('error')}")
+
+            return result
+
+        except Exception as e:
+            print(f"❌ Error sending email: {str(e)}")
+            return {'success': False, 'error': str(e)}
+
     def list_analyzers(self):
         """Print available analyzers and their info."""
         print("\n" + "="*60)
         print("Available Analyzers:")
         print("="*60)
-        
+
         for name, analyzer in self.analyzers.items():
             metadata = analyzer.get_metadata()
             print(f"\n📊 {metadata['name']}")
@@ -495,7 +549,12 @@ Examples:
         action='store_true',
         help='List available analyzers'
     )
-    
+    parser.add_argument(
+        '--send-email',
+        action='store_true',
+        help='Send utility report via email (requires --utility and --html)'
+    )
+
     args = parser.parse_args()
     
     # Initialize orchestrator
@@ -523,6 +582,13 @@ Examples:
         orchestrator.run_specific(selected)
     else:
         orchestrator.run_all()
+
+    # Send email if requested
+    if args.send_email:
+        print("\n" + "="*60)
+        print("📧 Email Sending")
+        print("="*60)
+        orchestrator.send_utility_report_email()
 
 
 if __name__ == '__main__':
