@@ -53,7 +53,7 @@ class GWSEmailSender:
 
         if subject is None:
             month = month or datetime.now().strftime("%B %Y")
-            subject = f"📊 Utility Bills Dashboard — {month} (Monthly Report)"
+            subject = f"📊 Utility & Food Expense Report — {month}"
 
         try:
             # Use gws to send email
