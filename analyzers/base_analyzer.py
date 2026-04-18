@@ -48,6 +48,8 @@ class BaseAnalyzer(ABC):
         self.auth_manager = AuthManager(credentials_file, token_file)
         self.service = None
         self.template_name = None  # Subclass should set this
+        self.total_emails = 0
+        self.run_timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
 
     def authenticate(self) -> googleapiclient.discovery.Resource:
         """
@@ -200,7 +202,10 @@ class BaseAnalyzer(ABC):
             print(f"Error exporting JSON: {e}")
             raise
 
-    def run(self) -> Tuple[List[Dict], str, str]:
+    def get_timestamp(self) -> str:
+        return self.run_timestamp
+
+    def run(self, export_json: bool = True, export_html: bool = False) -> Dict:
         """
         Orchestrate full analysis pipeline.
 
@@ -208,18 +213,14 @@ class BaseAnalyzer(ABC):
         1. Search emails
         2. Parse documents
         3. Export JSON
-        4. Generate HTML report (future)
+        4. Generate HTML report (subclass)
 
         Returns:
-            Tuple of:
-            - List[Dict]: Parsed data
-            - str: Path to exported JSON file
-            - str: Path to generated HTML report (or '' if not yet implemented)
-
-        Raises:
-            Exception: If any step fails
+            Dict with 'success', 'parsed_data', 'json_file', 'html_file'
         """
         try:
+            self.run_timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+
             print(f"\n{'='*60}")
             print(f"Starting {self.analyzer_name}")
             print(f"{'='*60}")
@@ -227,36 +228,41 @@ class BaseAnalyzer(ABC):
             # Step 1: Search emails
             print(f"\n→ Searching for relevant emails...")
             emails = self.search_emails()
+            self.total_emails = len(emails)
             if not emails:
                 print(f"⚠ No emails found")
-                return [], '', ''
+                return {
+                    'success': True,
+                    'parsed_data': {},
+                    'json_file': None,
+                    'html_file': None,
+                }
 
             # Step 2: Parse documents
             print(f"\n→ Parsing documents...")
-            data = self.parse_documents(emails)
-            if not data:
-                print(f"⚠ No data extracted")
-                return [], '', ''
-
-            print(f"✓ Extracted {len(data)} documents")
+            parsed_data = self.parse_documents(emails)
 
             # Step 3: Export JSON
-            print(f"\n→ Exporting data...")
-            json_file = self.export_json(
-                data,
-                f"data/{self.analyzer_name.lower()}_data.json"
-            )
-
-            # Step 4: Generate HTML report
-            # TODO: Implement with Jinja2 templates
-            html_file = ''  # For now, not implemented
+            json_file = None
+            if export_json and parsed_data:
+                os.makedirs('data', exist_ok=True)
+                json_path = f"data/{self.analyzer_name.lower()}_{self.run_timestamp}.json"
+                with open(json_path, 'w') as f:
+                    json.dump(parsed_data, f, indent=2, default=str)
+                json_file = json_path
+                print(f"✓ Exported JSON: {json_file}")
 
             print(f"\n✓ {self.analyzer_name} complete")
-            return data, json_file, html_file
+            return {
+                'success': True,
+                'parsed_data': parsed_data,
+                'json_file': json_file,
+                'html_file': None,
+            }
 
         except Exception as e:
             print(f"✗ Error in {self.analyzer_name}: {e}")
-            raise
+            return {'success': False, 'error': str(e)}
 
     def get_metadata(self) -> Dict:
         """
