@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-04-18_00-04-40",
+  "utility": {
+    "total_emails": 0,
+    "utility_emails": 0,
+    "utilities_found": {}
+  },
+  "telecom": {
+    "total_emails": 0,
+    "bill_emails": 0,
+    "bills_found": {}
+  },
+  "amex": {
+    "total_emails": 0,
+    "statements": 0,
+    "total_spending": 0.0
+  },
+  "food": {
+    "total_emails": 0,
+    "receipt_emails": 0,
+    "total_spent": 0.0,
+    "by_vendor": {},
+    "expenses": []
+  },
+  "summary": {
+    "total_emails_analyzed": 0,
+    "analysis_timestamp": "2026-04-18_00-04-40",
+    "analyzers_run": 4
+  }
+}

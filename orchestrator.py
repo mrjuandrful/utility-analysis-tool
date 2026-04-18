@@ -25,6 +25,7 @@ from pathlib import Path
 from analyzers.gmail_utility_analyzer import GmailUtilityAnalyzer
 from analyzers.telecom_analyzer import TelecomAnalyzer
 from analyzers.amex_analyzer import AMEXAnalyzer
+from analyzers.food_expense_analyzer import FoodExpenseAnalyzer
 from email_sender import GWSEmailSender
 
 
@@ -60,6 +61,7 @@ class FinancialAnalyzerOrchestrator:
             'utility': GmailUtilityAnalyzer(),
             'telecom': TelecomAnalyzer(),
             'amex': AMEXAnalyzer(),
+            'food': FoodExpenseAnalyzer(),
         }
         
         # Results storage
@@ -181,6 +183,7 @@ class FinancialAnalyzerOrchestrator:
             'utility': self._extract_utility_data(),
             'telecom': self._extract_telecom_data(),
             'amex': self._extract_amex_data(),
+            'food': self._extract_food_data(),
             'summary': self._generate_summary(),
         }
 
@@ -215,12 +218,27 @@ class FinancialAnalyzerOrchestrator:
         result = self.results.get('amex', {})
         if not result.get('success'):
             return {'error': 'Analysis failed'}
-        
+
         parsed = result.get('parsed_data', {})
         return {
             'total_emails': self.analyzers['amex'].total_emails,
             'statements': parsed.get('total_transactions', 0),
             'total_spending': parsed.get('total_spent', 0.0),
+        }
+
+    def _extract_food_data(self) -> Dict:
+        """Extract and format food expense analyzer results."""
+        result = self.results.get('food', {})
+        if not result.get('success'):
+            return {'error': 'Analysis failed'}
+
+        parsed = result.get('parsed_data', {})
+        return {
+            'total_emails': self.analyzers['food'].total_emails,
+            'receipt_emails': parsed.get('total_food_emails', 0),
+            'total_spent': parsed.get('total_spent', 0.0),
+            'by_vendor': parsed.get('by_vendor', {}),
+            'expenses': parsed.get('expenses', []),
         }
 
     def _generate_summary(self) -> Dict:
@@ -283,7 +301,22 @@ class FinancialAnalyzerOrchestrator:
         utility_data = self.aggregated_data.get('utility', {})
         telecom_data = self.aggregated_data.get('telecom', {})
         amex_data = self.aggregated_data.get('amex', {})
+        food_data = self.aggregated_data.get('food', {})
         summary = self.aggregated_data.get('summary', {})
+
+        food_vendor_rows = ''
+        for vname, info in sorted(
+            food_data.get('by_vendor', {}).items(),
+            key=lambda x: x[1].get('total', 0), reverse=True
+        ):
+            food_vendor_rows += f"""
+                <tr>
+                  <td style="font-weight:600">{vname}</td>
+                  <td>{info.get('category', '')}</td>
+                  <td style="text-align:right">{info.get('count', 0)}</td>
+                  <td style="text-align:right">${info.get('total', 0):,.2f}</td>
+                  <td>{info.get('latest', '')}</td>
+                </tr>"""
 
         html = f"""<!DOCTYPE html>
 <html lang="en">
@@ -306,7 +339,7 @@ class FinancialAnalyzerOrchestrator:
         }}
         header h1 {{ font-size: 2.5rem; margin-bottom: 10px; }}
         .container {{ max-width: 1400px; margin: 0 auto; padding: 40px 24px; }}
-        .grid {{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-bottom: 40px; }}
+        .grid {{ display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 40px; }}
         .card {{
             background: white;
             border-radius: 12px;
@@ -314,11 +347,15 @@ class FinancialAnalyzerOrchestrator:
             box-shadow: 0 2px 10px rgba(0,0,0,0.08);
         }}
         .card h2 {{
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             margin-bottom: 20px;
             color: #1F4E79;
             border-bottom: 2px solid #2E75B6;
             padding-bottom: 10px;
+        }}
+        .card.food h2 {{
+            color: #92400e;
+            border-bottom-color: #f59e0b;
         }}
         .metric {{
             margin-bottom: 15px;
@@ -327,6 +364,29 @@ class FinancialAnalyzerOrchestrator:
         }}
         .metric-label {{ font-weight: 600; }}
         .metric-value {{ font-weight: bold; color: #2E75B6; }}
+        .card.food .metric-value {{ color: #b45309; }}
+        .food-section {{
+            background: white;
+            border-radius: 12px;
+            padding: 28px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 40px;
+        }}
+        .food-section h2 {{
+            font-size: 1.2rem;
+            color: #92400e;
+            border-bottom: 2px solid #f59e0b;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }}
+        table {{ width: 100%; border-collapse: collapse; font-size: 0.88rem; }}
+        thead th {{
+            background: #92400e; color: white; padding: 9px 12px;
+            text-align: left; font-weight: 600;
+        }}
+        tbody tr:nth-child(even) {{ background: #fef3c7; }}
+        tbody tr:hover {{ background: #fde68a; }}
+        td {{ padding: 8px 12px; border-bottom: 1px solid #e5e7eb; }}
         .summary {{
             background: white;
             border-radius: 12px;
@@ -350,8 +410,11 @@ class FinancialAnalyzerOrchestrator:
         .summary-item .label {{ font-size: 0.9rem; color: #666; margin-top: 5px; }}
         .timestamp {{ text-align: center; color: #999; font-size: 0.9rem; margin-top: 40px; }}
         @media (max-width: 1200px) {{
-            .grid {{ grid-template-columns: 1fr; }}
+            .grid {{ grid-template-columns: repeat(2, 1fr); }}
             .summary-grid {{ grid-template-columns: 1fr; }}
+        }}
+        @media (max-width: 768px) {{
+            .grid {{ grid-template-columns: 1fr; }}
         }}
     </style>
 </head>
@@ -410,6 +473,40 @@ class FinancialAnalyzerOrchestrator:
                     <span class="metric-value">{amex_data.get('total_emails', 0)}</span>
                 </div>
             </div>
+
+            <div class="card food">
+                <h2>🍗 Food Expenses</h2>
+                <div class="metric">
+                    <span class="metric-label">Receipts Found:</span>
+                    <span class="metric-value">{food_data.get('receipt_emails', 0)}</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Total Spent:</span>
+                    <span class="metric-value">${{food_data.get('total_spent', 0):,.2f}}</span>
+                </div>
+                <div class="metric">
+                    <span class="metric-label">Vendors Found:</span>
+                    <span class="metric-value">{len(food_data.get('by_vendor', {}))}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="food-section">
+            <h2>🍗 Food Expenses — By Vendor</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Vendor</th>
+                        <th>Category</th>
+                        <th style="text-align:right">Orders</th>
+                        <th style="text-align:right">Total Spent</th>
+                        <th>Latest Order</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {food_vendor_rows if food_vendor_rows else '<tr><td colspan="5" style="text-align:center;color:#9ca3af">No food receipts found</td></tr>'}
+                </tbody>
+            </table>
         </div>
 
         <div class="summary">
@@ -420,7 +517,7 @@ class FinancialAnalyzerOrchestrator:
                     <div class="label">Total Emails Analyzed</div>
                 </div>
                 <div class="summary-item">
-                    <div class="value">{summary.get('analyzers_run', 0)}/3</div>
+                    <div class="value">{summary.get('analyzers_run', 0)}/4</div>
                     <div class="label">Analyzers Executed</div>
                 </div>
                 <div class="summary-item">
@@ -441,7 +538,10 @@ class FinancialAnalyzerOrchestrator:
 
     def send_utility_report_email(self, recipients: Optional[List[str]] = None) -> dict:
         """
-        Send utility report via email using gws.
+        Send utility + food expense report via email using gws.
+
+        Sends the master dashboard HTML (which now includes food expenses).
+        Recipients default to Juan (mrjuandrful@gmail.com) and Melissa (mkperez1027@gmail.com).
 
         Args:
             recipients: List of email addresses to send to
@@ -454,31 +554,19 @@ class FinancialAnalyzerOrchestrator:
             return {'success': False, 'error': 'HTML export required'}
 
         try:
-            # Get the utility report HTML
-            utility_result = self.results.get('utility', {})
-            if not utility_result.get('success') or not utility_result.get('html_file'):
-                print("⚠️  No utility report HTML available to send.")
-                return {'success': False, 'error': 'No utility report generated'}
-
-            html_file = utility_result.get('html_file')
-            if not os.path.exists(html_file):
-                print(f"⚠️  HTML file not found: {html_file}")
-                return {'success': False, 'error': 'HTML file not found'}
-
-            # Read HTML content
-            with open(html_file, 'r') as f:
-                html_content = f.read()
+            # Prefer master dashboard which now contains food expenses
+            dashboard_html = self._build_dashboard_html()
 
             # Send email
             sender = GWSEmailSender()
             result = sender.send_utility_report(
-                html_content=html_content,
+                html_content=dashboard_html,
                 recipients=recipients,
                 month=datetime.now().strftime("%B %Y")
             )
 
             if result.get('success'):
-                print(f"✅ Utility report email prepared for sending")
+                print(f"✅ Report email prepared for sending")
                 print(f"   Recipients: {', '.join(result.get('to', []))}")
                 print(f"   Subject: {result.get('subject')}")
             else:
@@ -534,6 +622,11 @@ Examples:
         help='Run AMEX analyzer only'
     )
     parser.add_argument(
+        '--food',
+        action='store_true',
+        help='Run food expense analyzer only'
+    )
+    parser.add_argument(
         '--html',
         action='store_true',
         help='Generate HTML reports'
@@ -552,7 +645,7 @@ Examples:
     parser.add_argument(
         '--send-email',
         action='store_true',
-        help='Send utility report via email (requires --utility and --html)'
+        help='Send utility + food expense report via email to Juan & Melissa'
     )
 
     args = parser.parse_args()
@@ -576,6 +669,8 @@ Examples:
         selected.append('telecom')
     if args.amex:
         selected.append('amex')
+    if args.food:
+        selected.append('food')
     
     # Run analyzers
     if selected:
